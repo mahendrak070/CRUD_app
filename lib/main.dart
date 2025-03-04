@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'database_helper.dart';
 
-// Here we are using a global database helper instance.
-// In production, consider using a service locator or a provider approach.
+// Use a global instance of DatabaseHelper for simplicity.
+// In a production app, you could use a service locator or Provider.
 final dbHelper = DatabaseHelper();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize the database
+  // Initialize the database before running the app
   await dbHelper.init();
   runApp(const MyApp());
 }
@@ -30,7 +30,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
 
-  // HomePage layout
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,7 +38,7 @@ class MyHomePage extends StatelessWidget {
       ),
       body: Center(
         child: Container(
-          // Adds a little visual flair with border/padding
+          // Add a border and padding to enhance UI
           padding: const EdgeInsets.all(16.0),
           margin: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
@@ -66,7 +65,18 @@ class MyHomePage extends StatelessWidget {
               const SizedBox(height: 10),
               ElevatedButton(
                 onPressed: _delete,
-                child: const Text('Delete'),
+                child: const Text('Delete (Last Row)'),
+              ),
+              const SizedBox(height: 25),
+              // NEW BUTTONS BELOW
+              ElevatedButton(
+                onPressed: _queryById,
+                child: const Text('Query by ID = 1'),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: _deleteAll,
+                child: const Text('Delete All'),
               ),
             ],
           ),
@@ -75,10 +85,12 @@ class MyHomePage extends StatelessWidget {
     );
   }
 
-  // Button onPressed methods
+  // -----------------------------
+  // Button onPressed handlers
+  // -----------------------------
 
   void _insert() async {
-    // Row to insert
+    // Insert a new row. For demo, we'll use static values.
     Map<String, dynamic> row = {
       DatabaseHelper.columnName: 'Bob',
       DatabaseHelper.columnAge: 23
@@ -96,7 +108,7 @@ class MyHomePage extends StatelessWidget {
   }
 
   void _update() async {
-    // Row to update
+    // For example, update the row with ID=1
     Map<String, dynamic> row = {
       DatabaseHelper.columnId: 1,
       DatabaseHelper.columnName: 'Mary',
@@ -107,10 +119,27 @@ class MyHomePage extends StatelessWidget {
   }
 
   void _delete() async {
-    // Here we simply delete the row matching the current rowCount
-    // Typically you'd know the actual ID to delete from a query
+    // Delete the "last" row based on rowCount
     final id = await dbHelper.queryRowCount();
     final rowsDeleted = await dbHelper.delete(id);
-    debugPrint('Deleted $rowsDeleted row(s): row $id');
+    debugPrint('Deleted $rowsDeleted row(s), Row $id');
+  }
+
+  // NEW METHODS
+
+  /// Demonstrates how to query for a specific row by ID.
+  void _queryById() async {
+    final row = await dbHelper.queryRowById(1);
+    if (row != null) {
+      debugPrint('Record found: $row');
+    } else {
+      debugPrint('No record found with ID = 1');
+    }
+  }
+
+  /// Deletes all rows from the database.
+  void _deleteAll() async {
+    final rowsDeleted = await dbHelper.deleteAll();
+    debugPrint('All records deleted, total: $rowsDeleted');
   }
 }
